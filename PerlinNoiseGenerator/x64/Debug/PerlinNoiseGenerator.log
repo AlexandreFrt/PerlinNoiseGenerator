@@ -1,0 +1,10 @@
+﻿  imgui-SFML.cpp
+  imgui.cpp
+  imgui_demo.cpp
+  imgui_draw.cpp
+  imgui_tables.cpp
+  imgui_widgets.cpp
+  main.cpp
+C:\Users\user\Desktop\Dev\PerlinNoiseGenerator\PerlinNoiseGenerator\main.cpp(155,54): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
+  Generating Code...
+  PerlinNoiseGenerator.vcxproj -> C:\Users\user\Desktop\Dev\PerlinNoiseGenerator\x64\Debug\PerlinNoiseGenerator.exe
