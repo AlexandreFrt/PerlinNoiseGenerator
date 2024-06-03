@@ -15,7 +15,7 @@ private:
     std::vector<int> p; // Permutation vector
 
 public:
-	// Initialize the permutation vector
+    // Initialize the permutation vector
     PerlinNoise(unsigned int seed) {
         p.resize(256);
         std::iota(p.begin(), p.end(), 0);
@@ -24,17 +24,17 @@ public:
         p.insert(p.end(), p.begin(), p.end());
     }
 
-	// Fade function
+    // Fade function
     double fade(double t) {
         return t * t * t * (t * (t * 6 - 15) + 10);
     }
 
-	// Linear interpolation
+    // Linear interpolation
     double lerp(double t, double a, double b) {
         return a + t * (b - a);
     }
 
-	// Gradient function
+    // Gradient function
     double grad(int hash, double x, double y) {
         int h = hash & 7;
         double u = h < 4 ? x : y;
@@ -42,12 +42,12 @@ public:
         return ((h & 1) ? -u : u) + ((h & 2) ? -2.0 * v : 2.0 * v);
     }
 
-	// Calculate Perlin noise
+    // Calculate Perlin noise
     double perlinNoise(double x, double y) {
-        int xi0 = static_cast<int>(std::floor(x)) % 256;
-        int xi1 = (xi0 + 1) % 256;
-        int yi0 = static_cast<int>(std::floor(y)) % 256;
-        int yi1 = (yi0 + 1) % 256;
+        int xi0 = static_cast<int>(std::floor(x)) & 255;
+        int xi1 = (xi0 + 1) & 255;
+        int yi0 = static_cast<int>(std::floor(y)) & 255;
+        int yi1 = (yi0 + 1) & 255;
 
         double tx = x - std::floor(x);
         double ty = y - std::floor(y);
@@ -66,7 +66,7 @@ public:
         return lerp(v, x1, x2);
     }
 
-	// Calculate Perlin noise with octaves
+    // Calculate Perlin noise with octaves
     double perlinNoiseOctaves(double x, double y, int octaves, double persistence) {
         double total = 0;
         double frequency = 1;
@@ -85,15 +85,18 @@ public:
 };
 
 // Generate Perlin noise image
-void generateNoiseImage(sf::Image& image, PerlinNoise& noise, double scale, int octaves, double persistence) {
+void generateNoiseImage(sf::Image& image, PerlinNoise& noise, double scale, int octaves, double persistence, int offsetX, int offsetY) {
     int width = image.getSize().x;
     int height = image.getSize().y;
 
     for (int i = 0; i < width; ++i) {
         for (int j = 0; j < height; ++j) {
-            double x = i * scale;
-            double y = j * scale;
+            double x = (i + offsetX) * scale;
+            double y = (j + offsetY) * scale;
             double value = noise.perlinNoiseOctaves(x, y, octaves, persistence);
+
+            value = std::clamp(value, 0.0, 1.0);
+
             int color_value = static_cast<int>(value * 255);
             image.setPixel(i, j, sf::Color(color_value, color_value, color_value));
         }
@@ -102,12 +105,14 @@ void generateNoiseImage(sf::Image& image, PerlinNoise& noise, double scale, int 
 
 int main() {
     // Noise parameters
-    int width = 256;
-    int height = 256;
+    int width = 512;
+    int height = 512;
     unsigned int seed = 1;
     double scale = 0.1;
     int octaves = 4;
     double persistence = 0.75;
+    int offsetX = 0;
+    int offsetY = 0;
 
     PerlinNoise noise(seed);
 
@@ -118,7 +123,7 @@ int main() {
     sf::Image image;
     image.create(width, height, sf::Color::Black);
 
-    generateNoiseImage(image, noise, scale, octaves, persistence);
+    generateNoiseImage(image, noise, scale, octaves, persistence, offsetX, offsetY);
 
     sf::Texture texture;
     texture.loadFromImage(image);
@@ -141,34 +146,45 @@ int main() {
         // Cast to float for ImGui sliders
         float scale_f = static_cast<float>(scale);
         float persistence_f = static_cast<float>(persistence);
-
         int seed_i = static_cast<int>(seed);
 
         // Scale slider
         if (ImGui::SliderFloat("Scale", &scale_f, 0.001f, 1.0f)) {
             scale = static_cast<double>(scale_f);
-            generateNoiseImage(image, noise, scale, octaves, persistence);
+            generateNoiseImage(image, noise, scale, octaves, persistence, offsetX, offsetY);
             texture.loadFromImage(image);
             sprite.setTexture(texture);
         }
         // Octave slider
         if (ImGui::SliderInt("Octaves", &octaves, 1, 10.f)) {
-            generateNoiseImage(image, noise, scale, octaves, persistence);
+            generateNoiseImage(image, noise, scale, octaves, persistence, offsetX, offsetY);
             texture.loadFromImage(image);
             sprite.setTexture(texture);
         }
         // Persistence slider
         if (ImGui::SliderFloat("Persistence", &persistence_f, 0.1f, 5.0f)) {
             persistence = static_cast<double>(persistence_f);
-            generateNoiseImage(image, noise, scale, octaves, persistence);
+            generateNoiseImage(image, noise, scale, octaves, persistence, offsetX, offsetY);
             texture.loadFromImage(image);
             sprite.setTexture(texture);
         }
         // Seed slider
-        if (ImGui::SliderInt("Seed", &seed_i, 1, 16)) {
+        if (ImGui::SliderInt("Seed", &seed_i, 1, 1000)) {
             seed = static_cast<unsigned int>(seed_i);
             noise = PerlinNoise(seed);
-            generateNoiseImage(image, noise, scale, octaves, persistence);
+            generateNoiseImage(image, noise, scale, octaves, persistence, offsetX, offsetY);
+            texture.loadFromImage(image);
+            sprite.setTexture(texture);
+        }
+        // Offset X slider
+        if (ImGui::SliderInt("Offset X", &offsetX, -1000, 1000)) {
+            generateNoiseImage(image, noise, scale, octaves, persistence, offsetX, offsetY);
+            texture.loadFromImage(image);
+            sprite.setTexture(texture);
+        }
+        // Offset Y slider
+        if (ImGui::SliderInt("Offset Y", &offsetY, -1000, 1000)) {
+            generateNoiseImage(image, noise, scale, octaves, persistence, offsetX, offsetY);
             texture.loadFromImage(image);
             sprite.setTexture(texture);
         }
