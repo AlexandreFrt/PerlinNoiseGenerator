@@ -156,7 +156,7 @@ int main() {
             sprite.setTexture(texture);
         }
         // Octave slider
-        if (ImGui::SliderInt("Octaves", &octaves, 1, 10.f)) {
+        if (ImGui::SliderInt("Octaves", &octaves, 1, 16)) {
             generateNoiseImage(image, noise, scale, octaves, persistence, offsetX, offsetY);
             texture.loadFromImage(image);
             sprite.setTexture(texture);
@@ -169,7 +169,7 @@ int main() {
             sprite.setTexture(texture);
         }
         // Seed slider
-        if (ImGui::SliderInt("Seed", &seed_i, 1, 1000)) {
+        if (ImGui::SliderInt("Seed", &seed_i, 1, 16)) {
             seed = static_cast<unsigned int>(seed_i);
             noise = PerlinNoise(seed);
             generateNoiseImage(image, noise, scale, octaves, persistence, offsetX, offsetY);
